@@ -20,9 +20,25 @@
             margin-bottom: 10px;
         }
 
+        .task-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .taskbtn {
+            margin-left: 2px;
+        }
+
         .task {
             border: solid black 1px;
             margin: 5px;
+        }
+
+        .createTaskButton {
+            display: flex;
+            justify-content: flex-end;
+            margin-right: 35px;
         }
     </style>
 </head>
@@ -43,47 +59,81 @@
                         </button>
                         <button type="button" class="btn btn-danger" @click="logout()"
                             v-if="sessionToken">Logout</button>
+                        <div class="createTaskButton">
+                            <button type="button" class="btn btn-primary" @click="showCreateTaskModal()"
+                                v-if="sessionToken">
+                                Create task
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="row gy-5 g-lg-3">
-                <div class="col">
-                    <!-- List of tasks -->
-                    <div class="task-list">
-                        <div class="task" v-for="task in tasks" :key="task.id">
-                            <div class="task-description">
-                                <p><strong>{{ task.name }}</strong></p>
-                                <p>{{ task.description }}</p>
-                                <p>{{ task.dueDate }}</p>
+                <div class="row gy-5 g-lg-3">
+                    <div class="col">
+                        <!-- List of tasks -->
+                        <div class="task-list">
+                            <div class="task" v-for="task in tasks" :key="task.id">
+                                <div class="task-description">
+                                    <p><strong>{{ task.name }}</strong></p>
+                                    <p>{{ task.description }}</p>
+                                    <p>{{ task.dueDate }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <div id="signInModal" class="modal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Please fill out the signIn details: </p><br>
+                            <form>
+                                <label for="username">Username:</label><br>
+                                <input v-model="username" type="text" id="username" name="username"><br>
+                                <label for="password">Password:</label><br>
+                                <input v-model="password" type="password" id="password" name="password">
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" @click="confirmSignIn()" class="btn btn-primary">Confirm
+                                signIn</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="signInModal" class="modal" tabindex="-1">
+
+        <!-- Create task modal pop up-->
+        <div id="createTaskModal" class="modal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p>Please fill out the signIn details: </p><br>
+                        <p>Create a new task </p><br>
                         <form>
-                            <label for="username">Username:</label><br>
-                            <input v-model="username" type="text" id="username" name="username"><br>
-                            <label for="password">Password:</label><br>
-                            <input v-model="password" type="password" id="password" name="password">
+                            <label for="name">Task name:</label><br>
+                            <input v-model="name" type="text" id="name" name="name"><br>
+                            <label for="description">Description:</label><br>
+                            <input v-model="description" type="text" id="description" name="description"><br>
+                            <label for="dueDate">Due date:</label><br>
+                            <input v-model="dueDate" type="date" id="dueDate" name="dueDate"><br>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" @click="confirmSignIn()" class="btn btn-primary">Confirm signIn</button>
+                        <button type="button" @click="createTask()" class="btn btn-primary">Create</button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
         integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
@@ -198,6 +248,25 @@
 
                     }
                 },
+                
+                showCreateTaskModal: function () {
+                    this.modalHandler = new bootstrap.Modal(document.getElementById('createTaskModal'), {})
+                    this.modalHandler.show()
+                },
+
+                //method to create a new task
+                createTask: async function () {
+                    let response = await this.send('POST', `/tasks`, {
+                        name: this.name,
+                        description: this.description,
+                        dueDate: this.dueDate
+                    });
+                    if (response.ok) {
+                        this.getTasks();
+                        this.modalHandler.hide()
+                    }
+                },
+
                 getTasks: async function () {
                     let response = await this.send('GET', `/tasks`);
                     if (response.ok) {

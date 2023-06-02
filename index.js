@@ -82,6 +82,24 @@ app.use(function (err, req, res, next) {
     res.status(status).send({ error: err.message });
 });
 
+//Endpoint for creating a new task
+app.post('/tasks', requireAuth, (req, res) => {
+    if (!req.body.name || !req.body.dueDate || !req.body.description) {
+        return res.status(400).send({ error: 'One or all params are missing' })
+    }
+    let newTask = {
+        id: tasks.length + 1,
+        name: req.body.name,
+        dueDate: req.body.dueDate,
+        description: req.body.description,
+        userId: req.user.id
+    }
+    tasks.push(newTask)
+    res.status(201).send(
+        newTask
+    )
+})
+
 function requireAuth(req, res, next) {
 
     if (!req.headers.authorization) {
