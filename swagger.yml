@@ -82,11 +82,53 @@ paths:
                       and the token
           description: Unauthorized.
       security:
-        -
-          Bearer: []
+        - Bearer: [ ]
       operationId: deletesession
       summary: Delete a session
       description: Deletes a new instance of a `session`.
+  /tasks:
+    summary: Path used to manage the list of tasks.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `task` entities.  This path contains a
+      `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      tags:
+        - /tasks
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/task'
+          description: Successful response - returns an array of `task` entities.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid session:
+                  value:
+                    error: Invalid session
+                Invalid user:
+                  value:
+                    error: Invalid user
+                Missing authorization header:
+                  value:
+                    error: Missing authorization header
+                Authorization header must start with Bearer followed by a space and the token:
+                  value:
+                    error: >-
+                      Authorization header must start with Bearer followed by a space
+                      and the token
+          description: Unauthorized.
+      security:
+        - Bearer: [ ]
+      operationId: gettasks
+      summary: List All tasks
+      description: Gets a list of all `task` entities.
 components:
   schemas:
     session:
@@ -110,11 +152,39 @@ components:
           type: string
       example:
         error: 'Unauthorized: username or password is incorrect'
+    task:
+      title: Root Type for task
+      description: ''
+      type: object
+      properties:
+        id:
+          format: int32
+          type: integer
+        name:
+          type: string
+        dueDate:
+          format: date-time
+          type: string
+        description:
+          type: string
+        userId:
+          format: int32
+          type: integer
+        completed:
+          type: boolean
+      example:
+        id: 1
+        name: Task 1
+        dueDate: '2021-02-12 11:22:33'
+        description: Description for task 1
+        userId: 1
+        completed: true
   securitySchemes:
     Bearer:
       scheme: bearer
       type: http
 tags:
-  -
-    name: /sessions
+  - name: /sessions
+    description: ''
+  - name: /tasks
     description: ''

@@ -17,6 +17,30 @@ const users = [
     { username: 'admin', password: 'password', isAdmin: true, id: 1 },
     { username: 'user', password: 'password', isAdmin: false, id: 2 }
 ];
+let tasks = [
+    {
+        id: 1,
+        name: 'Task 1',
+        dueDate: '2021-02-12 11:22:33',
+        description: 'Description for task 1',
+        userId: 1,
+    },
+    {
+        id: 2,
+        name: 'Task 2',
+        dueDate: '2022-03-44 22:11:22',
+        description: 'Description for task 2',
+        userId: 2,
+    },
+    {
+        id: 3,
+        name: 'Task 3',
+        dueDate: '2022-03-44 22:11:22',
+        description: 'Description for task 3',
+        userId: 1,
+        completed: false
+    },
+];
 app.post('/sessions', (req, res) => {
     if (!req.body.username || !req.body.password) {
         return res.status(400).send({ error: 'One or all params are missing' })
@@ -38,6 +62,12 @@ app.post('/sessions', (req, res) => {
         { sessionToken: sessionToken }
     )
 })
+
+// Endpoint for getting all tasks
+app.get('/tasks', requireAuth, (req, res) => {
+    res.send(tasks.filter((task) => task.userId === req.user.id))
+})
+
 app.delete('/sessions', requireAuth, (req, res) => {
     sessions = sessions.filter((session) => session.sessionToken === req.sessionToken);
     res.status(204).end()
