@@ -77,6 +77,10 @@
                                     <p>{{ task.description }}</p>
                                     <p>{{ task.dueDate }}</p>
                                 </div>
+                                <div class="task-buttons">
+                                    <button type="button" class="btn taskbtn btn-danger"
+                                        @click="deleteTask(task.id)">Delete</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -248,10 +252,18 @@
 
                     }
                 },
-                
+
                 showCreateTaskModal: function () {
                     this.modalHandler = new bootstrap.Modal(document.getElementById('createTaskModal'), {})
                     this.modalHandler.show()
+                },
+
+                //method to delete a task
+                deleteTask: async function (taskID) {
+                    let response = await this.send('DELETE', `/tasks/${taskID}`, {});
+                    if (response.ok) {
+                        this.getTasks();
+                    }
                 },
 
                 //method to create a new task
@@ -266,6 +278,8 @@
                         this.modalHandler.hide()
                     }
                 },
+
+
 
                 getTasks: async function () {
                     let response = await this.send('GET', `/tasks`);

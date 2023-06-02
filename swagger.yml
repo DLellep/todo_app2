@@ -94,7 +94,7 @@ paths:
                                 'Unauthorized: username or password is incorrect':
                                     value:
                                         error: 'Unauthorized: username or password is incorrect.'
-                    description: 'Unauthorized: username or password is incorrect.'
+                    description: 'Unauthorized: usename or password is incorrect.'
             security:
                 -
                     Bearer: []
@@ -194,6 +194,72 @@ paths:
             operationId: deletesession
             summary: Delete a session
             description: Deletes a new instance of a `session`.
+    '/tasks/{id}':
+        summary: Path used to manage the list of tasks.
+        description: >-
+            The REST endpoint/path used to list and create zero or more `task` entities.  This path contains a
+            `GET` and `POST` operation to perform the list and create tasks, respectively.
+        delete:
+            tags:
+                - /tasks
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task'
+                    description: Successful response - deletes a `task` entity.
+                '204':
+                    headers:
+                        No content: {}
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task'
+                    description: Successful response - no content.
+                '401':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Missing authorization header:
+                                    value:
+                                        error: Missing authorization header
+                    description: Unauthorized
+                '403':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Forbidden:
+                                    value:
+                                        error: >-
+                                            User ID of the task does not match the ID of the authenticated
+                                            user
+                    description: Forbidden
+                '404':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Task not found:
+                                    value:
+                                        error: Task not found
+                    description: Not Found
+            security:
+                -
+                    Bearer: []
+            operationId: deletetask
+            summary: Delete A Task
+            description: Deletes a `task` entity.
+        parameters:
+            -
+                name: id
+                in: path
+                required: true
 components:
     schemas:
         session:

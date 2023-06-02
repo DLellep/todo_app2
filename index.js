@@ -17,30 +17,7 @@ const users = [
     { username: 'admin', password: 'password', isAdmin: true, id: 1 },
     { username: 'user', password: 'password', isAdmin: false, id: 2 }
 ];
-let tasks = [
-    {
-        id: 1,
-        name: 'Task 1',
-        dueDate: '2021-02-12 11:22:33',
-        description: 'Description for task 1',
-        userId: 1,
-    },
-    {
-        id: 2,
-        name: 'Task 2',
-        dueDate: '2022-03-44 22:11:22',
-        description: 'Description for task 2',
-        userId: 2,
-    },
-    {
-        id: 3,
-        name: 'Task 3',
-        dueDate: '2022-03-44 22:11:22',
-        description: 'Description for task 3',
-        userId: 1,
-        completed: false
-    },
-];
+let tasks = [];
 app.post('/sessions', (req, res) => {
     if (!req.body.username || !req.body.password) {
         return res.status(400).send({ error: 'One or all params are missing' })
@@ -98,6 +75,19 @@ app.post('/tasks', requireAuth, (req, res) => {
     res.status(201).send(
         newTask
     )
+})
+
+//Endpoint for deleting a task
+app.delete('/tasks/:id', requireAuth, (req, res) => {
+    const task = tasks.find((task) => task.id === parseInt(req.params.id));
+    if (!task) {
+        return res.status(404).send({ error: 'Task not found' })
+    }
+    if (task.userId !== req.user.id) {
+        return res.status(403).send({ error: 'Forbidden' })
+    }
+    tasks = tasks.filter((task) => task.id !== parseInt(req.params.id));
+    res.status(204).end()
 })
 
 function requireAuth(req, res, next) {
