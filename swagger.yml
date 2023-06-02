@@ -1,0 +1,9 @@
+openapi: 3.0.2
+info:
+  title: todo_api
+  version: 1.0.0
+components:
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      type: http
