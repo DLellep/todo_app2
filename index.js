@@ -90,6 +90,26 @@ app.delete('/tasks/:id', requireAuth, (req, res) => {
     res.status(204).end()
 })
 
+//Endpoint for editing a task
+app.put('/tasks/:id', requireAuth, (req, res) => {
+    if (!req.body.name || !req.body.dueDate || !req.body.description) {
+        return res.status(400).send({ error: 'One or all params are missing' })
+    }
+    const task = tasks.find((task) => task.id === parseInt(req.params.id));
+    if (!task) {
+        return res.status(404).send({ error: 'Task not found' })
+    }
+    if (task.userId !== req.user.id) {
+        return res.status(403).send({ error: 'Forbidden' })
+    }
+    task.name = req.body.name;
+    task.dueDate = req.body.dueDate;
+    task.description = req.body.description;
+    res.status(200).send(
+        task
+    )
+})
+
 function requireAuth(req, res, next) {
 
     if (!req.headers.authorization) {

@@ -199,6 +199,90 @@ paths:
         description: >-
             The REST endpoint/path used to list and create zero or more `task` entities.  This path contains a
             `GET` and `POST` operation to perform the list and create tasks, respectively.
+        put:
+            requestBody:
+                description: ''
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/task'
+                        examples:
+                            task:
+                                value:
+                                    id: 1
+                                    name: Task 1
+                                    dueDate: '2021-02-12 11:22:33'
+                                    description: Description for task 1
+                required: true
+            tags:
+                - /tasks
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/task'
+                            examples:
+                                Successful response:
+                                    value:
+                                        name: Updated Task Name
+                                        dueDate: '2023-06-30'
+                                        description: Updated task description
+                    description: Successful response - `task` entity has been edited.
+                '400':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                One or all params are missing:
+                                    value:
+                                        error: One or all params are missing
+                    description: Bad Request.
+                '401':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Invalid session:
+                                    value:
+                                        error: Invalid session
+                                'Missing authorization header ':
+                                    value:
+                                        error: Missing authorization header
+                                Authorization header must start with Bearer followed by a space and the session sessionToken:
+                                    value:
+                                        error: >-
+                                            Authorization header must start with Bearer followed by a space
+                                            and the session sessionToken
+                    description: Unauthorized
+                '403':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Forbidden:
+                                    value:
+                                        error: Forbidden
+                    description: Forbidden
+                '404':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Task not found:
+                                    value:
+                                        error: Task not found
+                    description: Not Found
+            security:
+                -
+                    Bearer: []
+            operationId: edittask
+            summary: Edit A Task
+            description: Edits a `task` entity.
         delete:
             tags:
                 - /tasks
@@ -210,13 +294,7 @@ paths:
                                 $ref: '#/components/schemas/task'
                     description: Successful response - deletes a `task` entity.
                 '204':
-                    headers:
-                        No content: {}
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/task'
-                    description: Successful response - no content.
+                    description: Successful response.
                 '401':
                     content:
                         application/json:
