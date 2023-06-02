@@ -1,9 +1,120 @@
 openapi: 3.0.2
 info:
-  title: todo_api
+  title: todo-app
   version: 1.0.0
+paths:
+  /sessions:
+    summary: Path used to manage the list of sessions.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `session` entities.  This path
+      contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    post:
+      requestBody:
+        description: A new `session` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/session'
+        required: true
+      tags:
+        - /sessions
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/session'
+              examples:
+                session:
+                  value:
+                    sessionToken: tpk4wvs1pj5dut0lf85p3
+          description: Successful response.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid JSON:
+                  value:
+                    error: Unexpected token in JSON at position 0
+          description: Bad Request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                'Unauthorized: username or password is incorrect':
+                  value:
+                    error: 'Unauthorized: username or password is incorrect'
+          description: Unauthorized
+      operationId: createsession
+      summary: Create a session
+      description: Creates a new instance of a `session`.
+    delete:
+      tags:
+        - /sessions
+      responses:
+        '204':
+          content:
+            application/json: {}
+          description: '`Session` successfully deleted.'
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid session:
+                  value:
+                    error: Invalid session
+                Invalid user:
+                  value:
+                    error: Invalid user
+                Missing authorization header:
+                  value:
+                    error: Missing authorization header
+                Authorization header must start with Bearer followed by a space and the token:
+                  value:
+                    error: >-
+                      Authorization header must start with Bearer followed by a space
+                      and the token
+          description: Unauthorized.
+      security:
+        -
+          Bearer: []
+      operationId: deletesession
+      summary: Delete a session
+      description: Deletes a new instance of a `session`.
 components:
+  schemas:
+    session:
+      title: Root Type for session
+      description: ''
+      type: object
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+      example:
+        username: admin
+        password: password
+    error:
+      title: Root Type for error
+      description: ''
+      type: object
+      properties:
+        error:
+          type: string
+      example:
+        error: 'Unauthorized: username or password is incorrect'
   securitySchemes:
     Bearer:
       scheme: bearer
       type: http
+tags:
+  -
+    name: /sessions
+    description: ''
