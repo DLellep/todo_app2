@@ -44,6 +44,7 @@
 </head>
 
 <body>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <div id="app">
         <div class="container">
             <div class="row gy-5">
@@ -57,6 +58,9 @@
                         <button type="button" class="btn btn-success" @click="showSignInModal()" v-show="!sessionToken">
                             SignIn
                         </button>
+                        <div id="signInDiv" v-show="!sessionToken"
+                            style="display: flex; justify-content: center; align-items: center; text-align: center; margin-top:5px;">
+                        </div>
                         <button type="button" class="btn btn-danger" @click="logout()"
                             v-if="sessionToken">Logout</button>
                         <div class="createTaskButton">
@@ -97,8 +101,8 @@
                         <div class="modal-body">
                             <p>Please fill out the signIn details: </p><br>
                             <form>
-                                <label for="username">Username:</label><br>
-                                <input v-model="username" type="text" id="username" name="username"><br>
+                                <label for="email">Email:</label><br>
+                                <input v-model="email" type="text" id="email" name="email"><br>
                                 <label for="password">Password:</label><br>
                                 <input v-model="password" type="password" id="password" name="password">
                             </form>
@@ -171,6 +175,53 @@
             integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
             crossorigin="anonymous"></script>
         <script>
+            window.onload = function () {
+                google.accounts.id.initialize({
+                    client_id: '804118527347-jogucm1dolsnmboh5s7n0ih4vhq3ls8s.apps.googleusercontent.com',
+                    callback: handleCredentialResponse
+                });
+                // Google prompt
+                // google.accounts.id.prompt();
+
+                google.accounts.id.renderButton(
+                    document.getElementById('signInDiv'),
+                    {
+                        theme: 'filled_blue',
+                        size: 'large',
+                        text: 'long',
+                        type: 'standard'
+                    }
+                )
+            };
+            function handleCredentialResponse(response) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'https://localhost:4000/Oauth2Login');
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                xhr.onload = function () {
+                    // check if the response is valid
+                    if (xhr.status === 201) {
+                        let response = tryToParseJSON(xhr.response);
+                        let sessionToken = JSON.parse(xhr.response).sessionToken
+                        // parse the response and extract the sessionToken and save it in a cookie
+                        localStorage.setItem("sessionToken", sessionToken);
+                        vue.sessionToken = sessionToken;
+
+                        //set admin 
+                        let admin = JSON.parse(xhr.response).isAdmin
+                        localStorage.setItem("isAdmin", admin);
+                        vue.isAdmin = admin;
+
+                        //show tasks
+                        vue.getTasks();
+                        
+                        //set tasks with the add
+                    } else {
+                        console.log('Request failed.  Returned status of ' + xhr.status + " " + xhr.statusText + " " + xhr.responseText);
+                    }
+                };
+                xhr.send(JSON.stringify(response));
+            }
+
             function tryToParseJSON(jsonString) {
                 try {
                     let o = JSON.parse(jsonString);
@@ -185,7 +236,7 @@
             const vue = Vue.createApp({
                 data() {
                     return {
-                        username: null,
+                        email: null,
                         password: null,
                         name: null,
                         description: null,
@@ -208,6 +259,7 @@
                 },
                 created: async function () {
                     this.sessionToken = localStorage.getItem("sessionToken");
+                    this.isAdmin = localStorage.getItem("isAdmin");
                     if (!this.sessionToken) {
                         const that = this;
                         document.addEventListener("DOMContentLoaded", function () {
@@ -283,11 +335,12 @@
                     },
                     confirmSignIn: async function () {
                         let response = await this.send('POST', `/sessions`, {
-                            username: this.username,
+                            email: this.email,
                             password: this.password
                         });
                         if (response.ok) {
                             this.sessionToken = response.body.sessionToken;
+                            this.isAdmin = response.body.isAdmin;
                             localStorage.setItem("sessionToken", this.sessionToken);
                             this.modalHandler.hide()
                             await this.getTasks()
@@ -352,7 +405,7 @@
                         if (response.ok) {
                             this.tasks = response.body;
 
-                        }
+                        } 
                     }
                 }
             }).mount('#app')

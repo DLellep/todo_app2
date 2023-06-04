@@ -4,24 +4,27 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-      "start": "nodemon -e js,yml,json ."
+        "start": "nodemon -e js,yml,json ."
     },
     "repository": {
-      "type": "git",
-      "url": "git+https://github.com/DLellep/todo-app2.git"
+        "type": "git",
+        "url": "git+https://github.com/DLellep/todo-app2.git"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "bugs": {
-      "url": "https://github.com/DLellep/todo-app2/issues"
+        "url": "https://github.com/DLellep/todo-app2/issues"
     },
     "homepage": "https://github.com/DLellep/todo-app2#readme",
     "dependencies": {
-      "dotenv": "^16.0.3",
-      "express": "^4.18.2",
-      "nodemon": "^2.0.20",
-      "swagger-ui-express": "^4.6.0",
-      "yamljs": "^0.3.0"
+        "dotenv": "^16.0.3",
+        "express": "^4.18.2",
+        "fs": "^0.0.1-security",
+        "google-auth-library": "^8.8.0",
+        "https": "^1.0.0",
+        "nodemon": "^2.0.20",
+        "swagger-ui-express": "^4.6.0",
+        "yamljs": "^0.3.0"
     }
-  }
+}

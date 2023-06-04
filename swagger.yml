@@ -3,6 +3,137 @@ info:
     title: todo-app2
     version: 1.0.0
 paths:
+    /users:
+        post:
+            requestBody:
+                description: A new `user` to be created.
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/session'
+                        examples:
+                            Request body:
+                                value:
+                                    email: example@example.com
+                                    password: password
+                required: true
+            tags:
+                - /users
+            responses:
+                '201':
+                    description: "\t\r\nUser created - returns a `sessionToken` for the user."
+                '400':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Invalid email:
+                                    value:
+                                        error: Invalid email
+                                Email already exists:
+                                    value:
+                                        error: Email already exists
+                                One or all params are missing:
+                                    value:
+                                        error: One or all params are missing
+                    description: "Bad request\r\n\r\n"
+            operationId: createuser
+            summary: Creates a user.
+            description: "Creates a user.\r\n\r\n"
+    /sessions:
+        summary: Path used to manage the list of sessions.
+        description: >-
+            The REST endpoint/path used to list and create zero or more `session` entities.  This path
+            contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+        post:
+            requestBody:
+                description: A new `session` to be created.
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/session'
+                        examples:
+                            session:
+                                value:
+                                    email: admin
+                                    password: p
+                required: true
+            tags:
+                - /sessions
+            responses:
+                '201':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/session'
+                            examples:
+                                session:
+                                    value:
+                                        sessionToken: tpk4wvs1pj5dut0lf85p3
+                                        isAdmin: true
+                    description: Successful response.
+                '400':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Invalid JSON:
+                                    value:
+                                        error: Unexpected token in JSON at position 0
+                                One or all params are missing:
+                                    value:
+                                        error: One or all params are missing
+                    description: Bad Request
+                '401':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                'Unauthorized: email or password is incorrect':
+                                    value:
+                                        error: 'Unauthorized: email or password is incorrect'
+                    description: Unauthorized
+            operationId: createsession
+            summary: Create a session
+            description: Creates a new instance of a `session`.
+        delete:
+            tags:
+                - /sessions
+            responses:
+                '204':
+                    content:
+                        application/json: {}
+                    description: '`Session` successfully deleted.'
+                '401':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Invalid session:
+                                    value:
+                                        error: Invalid session
+                                Invalid user:
+                                    value:
+                                        error: Invalid user
+                                Missing authorization header:
+                                    value:
+                                        error: Missing authorization header
+                                Authorization header must start with Bearer followed by a space and the token:
+                                    value:
+                                        error: >-
+                                            Authorization header must start with Bearer followed by a space
+                                            and the token
+                    description: Unauthorized.
+            security:
+                -
+                    Bearer: []
+            operationId: deletesession
+            summary: Delete a session
+            description: Deletes a new instance of a `session`.
     /tasks:
         summary: Path used to manage the list of tasks.
         description: >-
@@ -91,109 +222,16 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/error'
                             examples:
-                                'Unauthorized: username or password is incorrect':
+                                'Unauthorized: email or password is incorrect':
                                     value:
-                                        error: 'Unauthorized: username or password is incorrect.'
-                    description: 'Unauthorized: usename or password is incorrect.'
+                                        error: 'Unauthorized: email or password is incorrect.'
+                    description: 'Unauthorized: email or password is incorrect.'
             security:
                 -
                     Bearer: []
             operationId: createtask
             summary: Create A Task
             description: Creates a new `task` entity.
-    /sessions:
-        summary: Path used to manage the list of sessions.
-        description: >-
-            The REST endpoint/path used to list and create zero or more `session` entities.  This path
-            contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-        post:
-            requestBody:
-                description: A new `session` to be created.
-                content:
-                    application/json:
-                        schema:
-                            $ref: '#/components/schemas/session'
-                        examples:
-                            session:
-                                value:
-                                    username: admin
-                                    password: password
-                required: true
-            tags:
-                - /sessions
-            responses:
-                '201':
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/session'
-                            examples:
-                                session:
-                                    value:
-                                        sessionToken: tpk4wvs1pj5dut0lf85p3
-                                        isAdmin: true
-                    description: Successful response.
-                '400':
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/error'
-                            examples:
-                                Invalid JSON:
-                                    value:
-                                        error: Unexpected token in JSON at position 0
-                                One or all params are missing:
-                                    value:
-                                        error: One or all params are missing
-                    description: Bad Request
-                '401':
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/error'
-                            examples:
-                                'Unauthorized: username or password is incorrect':
-                                    value:
-                                        error: 'Unauthorized: username or password is incorrect'
-                    description: Unauthorized
-            operationId: createsession
-            summary: Create a session
-            description: Creates a new instance of a `session`.
-        delete:
-            tags:
-                - /sessions
-            responses:
-                '204':
-                    content:
-                        application/json: {}
-                    description: '`Session` successfully deleted.'
-                '401':
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/error'
-                            examples:
-                                Invalid session:
-                                    value:
-                                        error: Invalid session
-                                Invalid user:
-                                    value:
-                                        error: Invalid user
-                                Missing authorization header:
-                                    value:
-                                        error: Missing authorization header
-                                Authorization header must start with Bearer followed by a space and the token:
-                                    value:
-                                        error: >-
-                                            Authorization header must start with Bearer followed by a space
-                                            and the token
-                    description: Unauthorized.
-            security:
-                -
-                    Bearer: []
-            operationId: deletesession
-            summary: Delete a session
-            description: Deletes a new instance of a `session`.
     '/tasks/{id}':
         summary: Path used to manage the list of tasks.
         description: >-
@@ -293,8 +331,6 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/task'
                     description: Successful response - deletes a `task` entity.
-                '204':
-                    description: Successful response.
                 '401':
                     content:
                         application/json:
@@ -345,13 +381,13 @@ components:
             description: ''
             type: object
             properties:
-                username:
+                email:
                     type: string
                 password:
                     type: string
             example:
-                username: admin
-                password: password
+                email: admin
+                password: p
         error:
             title: Root Type for error
             description: ''
@@ -360,7 +396,7 @@ components:
                 error:
                     type: string
             example:
-                error: 'Unauthorized: username or password is incorrect'
+                error: 'Unauthorized: email or password is incorrect'
         task:
             title: Root Type for task
             description: ''
