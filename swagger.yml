@@ -331,6 +331,8 @@ paths:
                             schema:
                                 $ref: '#/components/schemas/task'
                     description: Successful response - deletes a `task` entity.
+                '204':
+                    description: Successful response.
                 '401':
                     content:
                         application/json:
@@ -374,6 +376,53 @@ paths:
                 name: id
                 in: path
                 required: true
+    /logs:
+        get:
+            tags:
+                - /logs
+            responses:
+                '200':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/log'
+                            examples:
+                                Log:
+                                    value:
+                                        -
+                                            user: Foo Bar (1)
+                                            timeStamp: '2022-11-29 10:16:07'
+                                            eventName: oAuth2Login
+                                            extraData: >-
+                                                Foo Bar (foo.bar@voco.ee) logged in with Google OAuth2 as user
+                                                Admin 
+                    description: Successful response - returns a list of `log` entities.
+                '401':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                Missing authorization header:
+                                    value:
+                                        error: Missing authorization header
+                    description: Unauthorized
+                '403':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/error'
+                            examples:
+                                This action requires signing in as an admin:
+                                    value:
+                                        error: This action requires signing in as an admin
+                    description: Forbidden
+            security:
+                -
+                    Bearer: []
+            operationId: getlogs
+            summary: List All logs
+            description: Gets a list of all `log` entities.
 components:
     schemas:
         session:
@@ -381,13 +430,13 @@ components:
             description: ''
             type: object
             properties:
-                email:
+                username:
                     type: string
                 password:
                     type: string
             example:
-                email: admin
-                password: p
+                username: admin
+                password: password
         error:
             title: Root Type for error
             description: ''
@@ -396,7 +445,7 @@ components:
                 error:
                     type: string
             example:
-                error: 'Unauthorized: email or password is incorrect'
+                error: 'Unauthorized: username or password is incorrect'
         task:
             title: Root Type for task
             description: ''
@@ -419,6 +468,28 @@ components:
                 name: Task 1
                 dueDate: '2021-02-12 11:22:33'
                 description: Description for task 1
+        log:
+            description: Root type for log
+            properties:
+                timeStamp:
+                    format: date-time
+                    description: ''
+                    type: string
+                eventName:
+                    description: ''
+                    type: string
+                extraData:
+                    description: ''
+                    type: string
+                user:
+                    description: ''
+                    type: string
+            example:
+                -
+                    user: Foo Bar (1)
+                    timeStamp: '2022-11-29 10:16:07'
+                    eventName: oAuth2Login
+                    extraData: 'Foo Bar (foo.bar@voco.ee) logged in with Google OAuth2 as local user admin '
     securitySchemes:
         Bearer:
             scheme: bearer

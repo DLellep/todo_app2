@@ -108,3 +108,6 @@ dist
 cert.pem
 csr.pem
 key.pem
+
+# Logs
+/log.txt
