@@ -21,6 +21,14 @@ paths:
                 - /users
             responses:
                 '201':
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/session'
+                            examples:
+                                sessionToken:
+                                    value:
+                                        sessionToken: gtzd4dws38an2f7vtiscq
                     description: "\t\r\nUser created - returns a `sessionToken` for the user."
                 '400':
                     content:
@@ -154,9 +162,11 @@ paths:
                                 tasks:
                                     value:
                                         -
+                                            id: 1
                                             name: Task 1
                                             dueDate: '2021-02-12 11:22:33'
                                             description: Description for task 1
+                                            userId: 1
                     description: Successful response - returns an array of `task` entities.
                 '401':
                     content:
@@ -191,6 +201,14 @@ paths:
                     application/json:
                         schema:
                             $ref: '#/components/schemas/task'
+                        examples:
+                            task:
+                                value:
+                                    id: 1
+                                    name: Task 1
+                                    dueDate: '2021-02-12 11:22:33'
+                                    description: Description for task 1
+                                    userId: 1
             tags:
                 - /tasks
             responses:
@@ -202,9 +220,11 @@ paths:
                             examples:
                                 task:
                                     value:
+                                        id: 1
                                         name: Task 1
                                         dueDate: '2021-02-12 11:22:33'
                                         description: Description for task 1
+                                        userId: 1
                     description: Successful response - creates a new `task` entity and adds it to `tasks` array.
                 '400':
                     content:
@@ -251,6 +271,7 @@ paths:
                                     name: Task 1
                                     dueDate: '2021-02-12 11:22:33'
                                     description: Description for task 1
+                                    userId: 1
                 required: true
             tags:
                 - /tasks
@@ -263,9 +284,11 @@ paths:
                             examples:
                                 Successful response:
                                     value:
-                                        name: Updated Task Name
-                                        dueDate: '2023-06-30'
-                                        description: Updated task description
+                                        id: 1
+                                        name: Task 1
+                                        dueDate: '2021-02-12 11:22:33'
+                                        description: Updated description for task 1
+                                        userId: 1
                     description: Successful response - `task` entity has been edited.
                 '400':
                     content:
@@ -325,14 +348,8 @@ paths:
             tags:
                 - /tasks
             responses:
-                '200':
-                    content:
-                        application/json:
-                            schema:
-                                $ref: '#/components/schemas/task'
-                    description: Successful response - deletes a `task` entity.
                 '204':
-                    description: Successful response.
+                    description: '`Task` successfully deleted.'
                 '401':
                     content:
                         application/json:
@@ -465,9 +482,11 @@ components:
                     format: int32
                     type: integer
             example:
+                id: 1
                 name: Task 1
                 dueDate: '2021-02-12 11:22:33'
                 description: Description for task 1
+                userId: 1
         log:
             description: Root type for log
             properties:
