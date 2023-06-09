@@ -460,9 +460,18 @@
 
 
                     getTasks: async function () {
+                        
+                        //read tasks from the local storage cache
+                        let cachedTasks = localStorage.getItem("tasks");
+                        if (cachedTasks) {
+                            this.tasks = JSON.parse(cachedTasks);
+                        }
                         let response = await this.send('GET', `/tasks`);
                         if (response.ok) {
                             this.tasks = response.body;
+
+                            // save tasks to the local storage cache
+                            localStorage.setItem("tasks", JSON.stringify(this.tasks));
 
                         }
                     }

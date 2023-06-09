@@ -214,7 +214,10 @@ app.get('/logs', requireAuth, (req, res) => {
 });
 
 // Endpoint for getting all tasks
-app.get('/tasks', requireAuth, (req, res) => {
+app.get('/tasks', requireAuth, async (req, res) => {
+    // Delay for 2 seconds to test 
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
     res.send(tasks.filter((task) => task.userId === req.user.id))
 })
 
