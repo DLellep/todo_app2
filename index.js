@@ -1,7 +1,10 @@
 const https = require('https');
 const fs = require('fs');
+const cors = require('cors')
 const express = require('express')
 const app = express()
+//import socketio
+const socketio = require('socket.io');
 app.use(express.json());
 const swaggerUi = require('swagger-ui-express');
 require('dotenv').config()
@@ -16,6 +19,9 @@ const { OAuth2Client } = require('google-auth-library');
 const googleOAuth2Client = new OAuth2Client('804118527347-jogucm1dolsnmboh5s7n0ih4vhq3ls8s.apps.googleusercontent.com');
 const readline = require("readline");
 let loggedInUser;
+
+// enable cors for all routes
+app.use(cors());
 
 //store user data 
 app.use(function (req, res, next) {
@@ -217,7 +223,7 @@ app.get('/logs', requireAuth, (req, res) => {
 app.get('/tasks', requireAuth, async (req, res) => {
     // Delay for 2 seconds to test 
     await new Promise(resolve => setTimeout(resolve, 2000));
-    
+
     res.send(tasks.filter((task) => task.userId === req.user.id))
 })
 
@@ -226,14 +232,35 @@ app.delete('/sessions', requireAuth, (req, res) => {
     log("logout", `User ${loggedInUser.email} logged out`);
     res.status(204).end()
 })
-let httpsServer = https.createServer({
-    key: fs.readFileSync("key.pem"),
-    cert: fs.readFileSync("cert.pem"),
-},
-    app)
-    .listen(process.env.PORT, () => {
-        console.log(`App running at https://localhost:${process.env.PORT}. Documentation at https://localhost:${process.env.PORT}/docs`);
+
+let httpsServer = https.createServer(
+    {
+        key: fs.readFileSync("key.pem"),
+        cert: fs.readFileSync("cert.pem"),
+    },
+    app
+);
+
+const port = process.env.PORT || 3000; // Use process.env.PORT if available, otherwise use port 3000
+
+httpsServer.listen(port, () => {
+    console.log(`App running at https://localhost:${port}. Documentation at https://localhost:${port}/docs`);
+});
+
+//Create a Socket.IO instance and attach it to the HTTPS server
+const io = socketio(httpsServer);
+
+// Set up Socket.IO connect and disconnect
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    io.emit('user connected');
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+        io.emit('user disconnected');
     });
+});
+
+
 
 app.use(function (err, req, res, next) {
     console.error(err.stack);
@@ -255,6 +282,8 @@ app.post('/tasks', requireAuth, (req, res) => {
     }
     tasks.push(newTask)
     log("createTask", newTask);
+    // After creating a new task, emit a 'taskCreated' event to all connected clients
+    io.emit('taskCreated', newTask);
     res.status(201).send(
         newTask
     )
@@ -271,6 +300,8 @@ app.delete('/tasks/:id', requireAuth, (req, res) => {
     }
     tasks = tasks.filter((task) => task.id !== parseInt(req.params.id));
     log("deleteTask", `Task ${task.id} deleted`, loggedInUser);
+     // After deleting the task, emit a 'taskDeleted' event to all connected clients
+    io.emit('taskDeleted', task);
     res.status(204).end()
 })
 
@@ -312,6 +343,8 @@ app.put('/tasks/:id', requireAuth, (req, res) => {
     task.name = req.body.name;
     task.dueDate = req.body.dueDate;
     task.description = req.body.description;
+    // After updating the task, emit a 'taskUpdated' event to all connected clients
+    io.emit('taskUpdated', task);
     res.status(200).send(
         task
     )
@@ -328,8 +361,6 @@ function requireAuth(req, res, next) {
     }
 
     const sessionToken = req.headers.authorization.split(' ')[1];
-    console.log(sessionToken)
-    console.log(sessions)
     const session = sessions.find((session) => session.sessionToken === (sessionToken));
     if (!session) {
         return res.status(401).send({ error: 'Invalid session' })

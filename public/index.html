@@ -210,274 +210,309 @@
             </div>
         </div>
     </div>
-        <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
-            integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
-            crossorigin="anonymous"></script>
-        <script>
-            window.onload = function () {
-                google.accounts.id.initialize({
-                    client_id: '804118527347-jogucm1dolsnmboh5s7n0ih4vhq3ls8s.apps.googleusercontent.com',
-                    callback: handleCredentialResponse
-                });
-                // Google prompt
-                // google.accounts.id.prompt();
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();
+        // Add event listeners to handle real-time updates from the server
+        socket.on('taskCreated', (newTask) => {
+            // Handle task creation event, update UI accordingly
+            console.log('New task created:', newTask);
+            // Update your UI with the new task data
+            vue.tasks.push(newTask);
+        });
+        socket.on('taskUpdated', (updatedTask) => {
+            // Handle task update event, update UI accordingly
+            console.log('Task updated:', updatedTask);
+            // Update your UI with the new task data
+            // Find the index of the task in the Vue tasks array
+            const index = vue.tasks.findIndex(task => task.id === updatedTask.id);
 
-                google.accounts.id.renderButton(
-                    document.getElementById('signInDiv'),
-                    {
-                        theme: 'filled_blue',
-                        size: 'large',
-                        text: 'long',
-                        type: 'standard'
-                    }
-                )
-            };
-            function handleCredentialResponse(response) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', 'https://localhost:4000/Oauth2Login');
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                xhr.onload = function () {
-                    // check if the response is valid
-                    if (xhr.status === 201) {
-                        let response = tryToParseJSON(xhr.response);
-                        let sessionToken = JSON.parse(xhr.response).sessionToken
-                        // parse the response and extract the sessionToken and save it in a cookie
-                        localStorage.setItem("sessionToken", sessionToken);
-                        vue.sessionToken = sessionToken;
-
-                        //set admin 
-                        let admin = JSON.parse(xhr.response).isAdmin
-                        localStorage.setItem("isAdmin", admin);
-                        vue.isAdmin = String(admin);
-
-                        //show tasks
-                        vue.getTasks();
-
-                        //set tasks with the add
-                    } else {
-                        console.log('Request failed.  Returned status of ' + xhr.status + " " + xhr.statusText + " " + xhr.responseText);
-                    }
-                };
-                xhr.send(JSON.stringify(response));
+            // If the task is found, update it in the tasks array
+            if (index !== -1) {
+                vue.tasks[index] = updatedTask;
             }
+        });
+        socket.on('taskDeleted', (deletedTask) => {
+            // Handle task deletion event, update UI accordingly
+            console.log('Task deleted:', deletedTask);
+            // Update your UI to reflect the deletion
+            // Find the index of the task in the Vue tasks array
+            const index = vue.tasks.findIndex(task => task.id === deletedTask.id);
 
-            function tryToParseJSON(jsonString) {
-                try {
-                    let o = JSON.parse(jsonString);
-                    if (o && typeof o === "object") {
-                        return o;
-                    }
-                } catch (e) {
+            // If the task is found, remove it from the tasks array
+            if (index !== -1) {
+                vue.tasks.splice(index, 1);
+            }
+        });
+    </script>
+    <script src="https://unpkg.com/vue@3.2.31/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.min.js"
+        integrity="sha384-QJHtvGhmr9XOIpI6YVutG+2QOK9T+ZnN4kzFN1RtK3zEFEIsxhlmWl5/YESvpZ13"
+        crossorigin="anonymous"></script>
+    <script>
+        window.onload = function () {
+            google.accounts.id.initialize({
+                client_id: '804118527347-jogucm1dolsnmboh5s7n0ih4vhq3ls8s.apps.googleusercontent.com',
+                callback: handleCredentialResponse
+            });
+            // Google prompt
+            // google.accounts.id.prompt();
+
+            google.accounts.id.renderButton(
+                document.getElementById('signInDiv'),
+                {
+                    theme: 'filled_blue',
+                    size: 'large',
+                    text: 'long',
+                    type: 'standard'
                 }
-                return '';
-            }
+            )
+        };
+        function handleCredentialResponse(response) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://localhost:4000/Oauth2Login');
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function () {
+                // check if the response is valid
+                if (xhr.status === 201) {
+                    let response = tryToParseJSON(xhr.response);
+                    let sessionToken = JSON.parse(xhr.response).sessionToken
+                    // parse the response and extract the sessionToken and save it in a cookie
+                    localStorage.setItem("sessionToken", sessionToken);
+                    vue.sessionToken = sessionToken;
 
-            const vue = Vue.createApp({
-                data() {
-                    return {
-                        email: null,
-                        password: null,
-                        name: null,
-                        description: null,
-                        dueDate: null,
-                        createName: null,
-                        createDescription: null,
-                        createDueDate: null,
-                        editName: null,
-                        editDescription: null,
-                        editDueDate: null,
-                        modalHandler: null,
-                        taskInModal: null,
-                        tasks: [],
-                        activeTaskID: 0,
-                        description: null,
-                        sessionToken: null,
-                        taskID: null,
-                        isAdmin: false,
-                        logs: [],
-                        userId: null,
+                    //set admin 
+                    let admin = JSON.parse(xhr.response).isAdmin
+                    localStorage.setItem("isAdmin", admin);
+                    vue.isAdmin = String(admin);
+
+                    //show tasks
+                    vue.getTasks();
+
+                    //set tasks with the add
+                } else {
+                    console.log('Request failed.  Returned status of ' + xhr.status + " " + xhr.statusText + " " + xhr.responseText);
+                }
+            };
+            xhr.send(JSON.stringify(response));
+        }
+
+        function tryToParseJSON(jsonString) {
+            try {
+                let o = JSON.parse(jsonString);
+                if (o && typeof o === "object") {
+                    return o;
+                }
+            } catch (e) {
+            }
+            return '';
+        }
+
+        const vue = Vue.createApp({
+            data() {
+                return {
+                    email: null,
+                    password: null,
+                    name: null,
+                    description: null,
+                    dueDate: null,
+                    createName: null,
+                    createDescription: null,
+                    createDueDate: null,
+                    editName: null,
+                    editDescription: null,
+                    editDueDate: null,
+                    modalHandler: null,
+                    taskInModal: null,
+                    tasks: [],
+                    activeTaskID: 0,
+                    description: null,
+                    sessionToken: null,
+                    taskID: null,
+                    isAdmin: false,
+                    logs: [],
+                    userId: null,
+                }
+            },
+            created: async function () {
+                this.sessionToken = localStorage.getItem("sessionToken");
+                this.isAdmin = localStorage.getItem("isAdmin");
+                if (this.sessionToken && (this.isAdmin === true)) {
+                }
+
+                if (!this.sessionToken) {
+                    const that = this;
+                    document.addEventListener("DOMContentLoaded", function () {
+                        that.showSignInModal()
+                    });
+                } else {
+                    this.getTasks();
+                }
+            },
+
+            methods: {
+
+                clearStorageAndToggleLoginButtons: function () {
+                    this.sessionToken = null;
+                    this.tasks = null;
+                    this.isAdmin = null;
+                    localStorage.removeItem("sessionToken");
+                },
+                logout: async function () {
+                    let response = await this.send('DELETE', `/sessions`, {});
+                    if (response.ok) {
+                        this.clearStorageAndToggleLoginButtons();
                     }
                 },
-                created: async function () {
-                    this.sessionToken = localStorage.getItem("sessionToken");
-                    this.isAdmin = localStorage.getItem("isAdmin");
-                    if (this.sessionToken && (this.isAdmin===true)) {
+
+                send: function (method, url, body) {
+                    const vue = this;
+
+                    async function CheckError(response) {
+                        if (response.status >= 200 && response.status <= 299) {
+                            let responseText = await response.text()
+                            return { ok: true, status: response.status, body: tryToParseJSON(responseText) }
+                        } else {
+                            let responseText = await response.text()
+                            let responseObject = tryToParseJSON(responseText)
+                            if (typeof responseObject === 'object' && typeof responseObject.error === 'string') {
+                                if (response.status === 401 && responseObject.error === "Invalid session") {
+                                    vue.clearStorageAndToggleLoginButtons();
+                                } else if (response.status === 401 && responseObject.error === "You have to login") {
+                                    vue.clearStorageAndToggleLoginButtons();
+                                }
+                                alert('Error code ' + response.status + ":\n" + responseObject.error)
+                            } else {
+                                alert('Error code ' + response.status + ":\n" + responseText)
+                            }
+                            return { ok: false, status: response.status, body: responseObject || responseText }
+                        }
                     }
-                    
-                    if (!this.sessionToken) {
-                        const that = this;
-                        document.addEventListener("DOMContentLoaded", function () {
-                            that.showSignInModal()
+
+
+                    const headers = {
+                        'Content-Type': 'application/json'
+                    };
+                    if (this.sessionToken) {
+                        headers.Authorization = "Bearer " + this.sessionToken;
+                    }
+                    return fetch(url, {
+                        method: method,
+                        headers,
+                        body: JSON.stringify(body)
+                    })
+                        .then(CheckError)
+                        .then((jsonResponse) => {
+                            return jsonResponse
+                        }).catch((error) => {
+                            throw Error('Network error: ' + error);
                         });
-                    } else {
+                },
+
+                showSignInModal: function () {
+                    this.modalHandler = new bootstrap.Modal(document.getElementById('signInModal'), {})
+                    this.modalHandler.show()
+                },
+                confirmSignIn: async function () {
+                    let response = await this.send('POST', `/sessions`, {
+                        email: this.email,
+                        password: this.password
+                    });
+                    if (response.ok) {
+                        this.sessionToken = response.body.sessionToken;
+                        this.isAdmin = String(response.body.isAdmin);
+                        localStorage.setItem("isAdmin", this.isAdmin);
+                        localStorage.setItem("sessionToken", this.sessionToken);
+                        this.modalHandler.hide()
+                        await this.getTasks()
+
+                    }
+                },
+                //method to get logs
+                getLogs: async function () {
+                    try {
+                        let response = await this.send('GET', '/logs');
+                        if (response.ok) {
+                            this.logs = response.body;
+                            this.modalHandler = new bootstrap.Modal(document.getElementById('logsModal'), {})
+                            this.modalHandler.show()
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                },
+
+                //show edit task modal
+                showEditTaskModal: function (taskID) {
+                    this.activeTaskID = taskID;
+                    const task = this.tasks.find(task => task.id === taskID);
+                    this.editName = task.name;
+                    this.editDescription = task.description;
+                    this.editDueDate = task.dueDate;
+                    this.modalHandler = new bootstrap.Modal(document.getElementById('editTaskModal'), {});
+                    this.modalHandler.show();
+                },
+
+                //method to edit a task
+                editTask: async function (taskID) {
+                    let response = await this.send('PUT', `/tasks/${taskID}`, {
+                        name: this.editName,
+                        description: this.editDescription,
+                        dueDate: this.editDueDate
+                    });
+                    if (response.ok) {
+                        this.getTasks();
+                        this.modalHandler.hide()
+                    }
+                },
+
+                showCreateTaskModal: function () {
+                    this.modalHandler = new bootstrap.Modal(document.getElementById('createTaskModal'), {})
+                    this.modalHandler.show()
+                },
+
+                //method to delete a task
+                deleteTask: async function (taskID) {
+                    let response = await this.send('DELETE', `/tasks/${taskID}`, {});
+                    if (response.ok) {
                         this.getTasks();
                     }
                 },
 
-                methods: {
-
-                    clearStorageAndToggleLoginButtons: function () {
-                        this.sessionToken = null;
-                        this.tasks = null;
-                        this.isAdmin = null;
-                        localStorage.removeItem("sessionToken");
-                    },
-                    logout: async function () {
-                        let response = await this.send('DELETE', `/sessions`, {});
-                        if (response.ok) {
-                            this.clearStorageAndToggleLoginButtons();
-                        }
-                    },
-
-                    send: function (method, url, body) {
-                        const vue = this;
-
-                        async function CheckError(response) {
-                            if (response.status >= 200 && response.status <= 299) {
-                                let responseText = await response.text()
-                                return { ok: true, status: response.status, body: tryToParseJSON(responseText) }
-                            } else {
-                                let responseText = await response.text()
-                                let responseObject = tryToParseJSON(responseText)
-                                if (typeof responseObject === 'object' && typeof responseObject.error === 'string') {
-                                    if (response.status === 401 && responseObject.error === "Invalid session") {
-                                        vue.clearStorageAndToggleLoginButtons();
-                                    } else if (response.status === 401 && responseObject.error === "You have to login") {
-                                        vue.clearStorageAndToggleLoginButtons();
-                                    }
-                                    alert('Error code ' + response.status + ":\n" + responseObject.error)
-                                } else {
-                                    alert('Error code ' + response.status + ":\n" + responseText)
-                                }
-                                return { ok: false, status: response.status, body: responseObject || responseText }
-                            }
-                        }
-
-
-                        const headers = {
-                            'Content-Type': 'application/json'
-                        };
-                        if (this.sessionToken) {
-                            headers.Authorization = "Bearer " + this.sessionToken;
-                        }
-                        return fetch(url, {
-                            method: method,
-                            headers,
-                            body: JSON.stringify(body)
-                        })
-                            .then(CheckError)
-                            .then((jsonResponse) => {
-                                return jsonResponse
-                            }).catch((error) => {
-                                throw Error('Network error: ' + error);
-                            });
-                    },
-
-                    showSignInModal: function () {
-                        this.modalHandler = new bootstrap.Modal(document.getElementById('signInModal'), {})
-                        this.modalHandler.show()
-                    },
-                    confirmSignIn: async function () {
-                        let response = await this.send('POST', `/sessions`, {
-                            email: this.email,
-                            password: this.password
-                        });
-                        if (response.ok) {
-                            this.sessionToken = response.body.sessionToken;
-                            this.isAdmin = String(response.body.isAdmin);
-                            localStorage.setItem("isAdmin", this.isAdmin);
-                            localStorage.setItem("sessionToken", this.sessionToken);
-                            this.modalHandler.hide()
-                            await this.getTasks()
-
-                        }
-                    },
-                    //method to get logs
-                    getLogs: async function () {
-                        try {
-                            let response = await this.send('GET', '/logs');
-                            if (response.ok) {
-                                this.logs = response.body;
-                                this.modalHandler = new bootstrap.Modal(document.getElementById('logsModal'), {})
-                                this.modalHandler.show()
-                            }
-                        } catch (error) {
-                            console.log(error);
-                        }
-                    },
-
-                    //show edit task modal
-                    showEditTaskModal: function (taskID) {
-                        this.activeTaskID = taskID;
-                        const task = this.tasks.find(task => task.id === taskID);
-                        this.editName = task.name;
-                        this.editDescription = task.description;
-                        this.editDueDate = task.dueDate;
-                        this.modalHandler = new bootstrap.Modal(document.getElementById('editTaskModal'), {});
-                        this.modalHandler.show();
-                    },
-
-                    //method to edit a task
-                    editTask: async function (taskID) {
-                        let response = await this.send('PUT', `/tasks/${taskID}`, {
-                            name: this.editName,
-                            description: this.editDescription,
-                            dueDate: this.editDueDate
-                        });
-                        if (response.ok) {
-                            this.getTasks();
-                            this.modalHandler.hide()
-                        }
-                    },
-
-                    showCreateTaskModal: function () {
-                        this.modalHandler = new bootstrap.Modal(document.getElementById('createTaskModal'), {})
-                        this.modalHandler.show()
-                    },
-
-                    //method to delete a task
-                    deleteTask: async function (taskID) {
-                        let response = await this.send('DELETE', `/tasks/${taskID}`, {});
-                        if (response.ok) {
-                            this.getTasks();
-                        }
-                    },
-
-                    //method to create a new task
-                    createTask: async function () {
-                        let response = await this.send('POST', `/tasks`, {
-                            name: this.name,
-                            description: this.description,
-                            dueDate: this.dueDate
-                        });
-                        if (response.ok) {
-                            this.getTasks();
-                            this.modalHandler.hide()
-                        }
-                    },
+                //method to create a new task
+                createTask: async function () {
+                    let response = await this.send('POST', `/tasks`, {
+                        name: this.name,
+                        description: this.description,
+                        dueDate: this.dueDate
+                    });
+                    if (response.ok) {
+                        this.getTasks();
+                        this.modalHandler.hide()
+                    }
+                },
 
 
 
-                    getTasks: async function () {
-                        
-                        //read tasks from the local storage cache
-                        let cachedTasks = localStorage.getItem("tasks");
-                        if (cachedTasks) {
-                            this.tasks = JSON.parse(cachedTasks);
-                        }
-                        let response = await this.send('GET', `/tasks`);
-                        if (response.ok) {
-                            this.tasks = response.body;
+                getTasks: async function () {
 
-                            // save tasks to the local storage cache
-                            localStorage.setItem("tasks", JSON.stringify(this.tasks));
+                    //read tasks from the local storage cache
+                    let cachedTasks = localStorage.getItem("tasks");
+                    if (cachedTasks) {
+                        this.tasks = JSON.parse(cachedTasks);
+                    }
+                    let response = await this.send('GET', `/tasks`);
+                    if (response.ok) {
+                        this.tasks = response.body;
 
-                        }
+                        // save tasks to the local storage cache
+                        localStorage.setItem("tasks", JSON.stringify(this.tasks));
+
                     }
                 }
-            }).mount('#app')
-        </script>
+            }
+        }).mount('#app')
+    </script>
 
 </body>
 
